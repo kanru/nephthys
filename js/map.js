@@ -43,12 +43,21 @@
       this.mapContainer = document.getElementById('mapContainer');
       this.slideContainer = $('#slideContainer');
       var self = this;
-      $(function() {
-        $('input[type=file]').bootstrapFileInput();
-        $('#choose').change(function(evt) {
-          self.read(evt);
+      if (location.hash) {
+        $.get(location.hash.substring(1),
+              function(data) {
+                window.broadcaster.emit('profile-imported-stage-0');
+                window.broadcaster.emit('profile-imported');
+                self.parse(data);
+              }, 'json');
+      } else {
+        $(function() {
+          $('input[type=file]').bootstrapFileInput();
+          $('#choose').change(function(evt) {
+            self.read(evt);
+          });
         });
-      });
+      }
       window.addEventListener('ui-resize', this.resize.bind(this));
     },
 
@@ -103,7 +112,12 @@
 
     parse: function Isis_parse(string) {
       this.clear(true);
-      var object = JSON.parse(string);
+      var object;
+      if (typeof string === 'string') {
+        object = JSON.parse(string);
+      } else if (typeof string === 'object') {
+        object = string;
+      }
       this.start = object.start || object.begin;
       // XXX: fix me
       this.end = object.end;
